@@ -60,6 +60,13 @@ export async function POST(request: NextRequest) {
       'object_specific_blobs': 'object_specific_blobs.py',
       'ruttra_video': 'ruttra_video.py',
       'splinterframes': 'splinterframes.py',
+      // New multi-effects script
+      'trail': 'effects_video.py',
+      'echo': 'effects_video.py',
+      'flow': 'effects_video.py',
+      'ascii': 'effects_video.py',
+      'particles': 'effects_video.py',
+      'bbox_mesh': 'effects_video.py',
     };
 
     const scriptName = scriptMap[effect];
@@ -74,11 +81,25 @@ export async function POST(request: NextRequest) {
     const scriptPath = join(SCRIPTS_DIR, scriptName);
 
     // Prepare arguments for Python script
-    const scriptArgs = [scriptPath, inputPath, outputPath];
+    let scriptArgs: string[];
     
-    // Add object type parameter for specific effects
-    if (effect === 'object_specific_blobs' && objectType?.trim()) {
-      scriptArgs.push(objectType.trim());
+    // Handle effects_video.py with --effect flag
+    const multiEffects = ['trail', 'echo', 'flow', 'ascii', 'particles', 'bbox_mesh'];
+    if (multiEffects.includes(effect)) {
+      scriptArgs = [
+        scriptPath,
+        '--input', inputPath,
+        '--output', outputPath,
+        '--effect', effect
+      ];
+    } else {
+      // Handle individual scripts with positional arguments
+      scriptArgs = [scriptPath, inputPath, outputPath];
+      
+      // Add object type parameter for specific effects
+      if (effect === 'object_specific_blobs' && objectType?.trim()) {
+        scriptArgs.push(objectType.trim());
+      }
     }
 
     // Execute Python script
